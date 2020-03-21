@@ -4,6 +4,7 @@ import re
 import time
 
 from openpyxl import Workbook
+from openpyxl.styles import Font
 from datetime import datetime, date
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium import webdriver
@@ -45,7 +46,21 @@ def scrape_utahvhf_org():
         # Setup Excel file
         wb = Workbook()
         wb.active.title = 'Utah Repeaters'
-        wb.active.append(Repeater().column_headers())
+        column_headers = Repeater().column_headers()
+        wb.active.append(column_headers)
+        # Bold the first row, doesn't seem worth it
+        len_column_headers = len(column_headers)
+        for cell in range (0,len_column_headers):
+            tmp_cell = cell
+            if cell > 25:
+                tmp_cell = cell - 26
+            letter = chr(ord('a')+tmp_cell).upper()
+            # TODO: wrapping more than once
+            if cell > 25:
+                letter = 'A' + letter
+            wb.active[letter+'1'].font = Font(bold=True)
+        # Make sure cell isn't on row one - freeze_panes will freeze rows above the given cell and columns to the left.
+        wb.active.freeze_panes = wb.active['A2']
 
         # Grab 2 Meter 
         count = len(driver.find_elements_by_xpath("/html/body/div/a[2]/table/tbody/tr"))
@@ -62,8 +77,8 @@ def scrape_utahvhf_org():
             repeater.call_sign = driver.find_element_by_xpath('/html/body/div/a[2]/table/tbody/tr['+str(rptr)+']/td[5]').text
             repeater.sponsor = driver.find_element_by_xpath('/html/body/div/a[2]/table/tbody/tr['+str(rptr)+']/td[6]').text
             repeater.ctcss = driver.find_element_by_xpath('/html/body/div/a[2]/table/tbody/tr['+str(rptr)+']/td[7]').text
-            repeater.info = driver.find_element_by_xpath('/html/body/div/a[2]/table/tbody/tr['+str(rptr)+']/td[7]').text
-            repeater.links = driver.find_element_by_xpath('/html/body/div/a[2]/table/tbody/tr['+str(rptr)+']/td[8]').text
+            repeater.info = driver.find_element_by_xpath('/html/body/div/a[2]/table/tbody/tr['+str(rptr)+']/td[8]').text
+            repeater.links = driver.find_element_by_xpath('/html/body/div/a[2]/table/tbody/tr['+str(rptr)+']/td[9]').text
 
             # Open Repeater page
             driver.get(repeater.url)
@@ -102,4 +117,3 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Scrape utahvhfs.org/rptr.html for info')
     scrape_utahvhf_org()
-    
