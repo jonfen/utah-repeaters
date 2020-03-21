@@ -1,0 +1,6 @@
+et-xmlfile
+jdcal
+openpyxl
+selenium
+urllib3
+pytest
