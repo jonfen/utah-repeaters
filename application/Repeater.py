@@ -36,9 +36,14 @@ class Repeater(object):
             self.__last_coordinated = None
             self.__last_updated = None
             self.__website = None
+            self.__latitude = None
+            self.__longitude = None
+
 
     def is_empty(self, value):
-        return value if value != ' ' and value != '(none)' and value != '(None)' else None
+        if isinstance(value, str):
+            value.strip()
+        return value if value != ' ' and value != '(none)' and value != '(None)' and value != 'N/A' else None
 
     @property
     def url(self):
@@ -157,7 +162,10 @@ class Repeater(object):
 
     @latitude.setter
     def latitude(self, value):
-        self.__latitude = self.is_empty(value)
+        tmp = self.is_empty(value)
+        if tmp:
+            tmp = tmp.split()
+            self.__latitude = tmp[0].replace('(','').replace(')','').replace('°','') + tmp[1].replace('.','')
 
     @property
     def longitude(self):
@@ -165,7 +173,10 @@ class Repeater(object):
 
     @longitude.setter
     def longitude(self, value):
-        self.__longitude = self.is_empty(value)
+        tmp = self.is_empty(value)
+        if tmp:
+            tmp = tmp.split()
+            self.__longitude = tmp[0].replace('(','').replace(')','').replace('°','') + tmp[1].replace('.','')
 
     @property
     def elevation(self):
@@ -265,6 +276,13 @@ class Repeater(object):
         if tmp:
             self.__coverage_notes.append(tmp)
 
+    @property
+    def google_map_link(self):
+        self.__google_map_link = None
+        if self.__latitude and self.__longitude:
+            self.__google_map_link = 'https://www.google.com/maps/place/'+self.__latitude+'+'+self.__longitude+'/'
+        return self.__google_map_link
+
     def to_list(self):
         return [
             '=HYPERLINK("'+self.__url+'","'+self.__url+'")' if self.__url else None,
@@ -277,6 +295,7 @@ class Repeater(object):
             self.__site_name,
             self.__latitude,
             self.__longitude,
+            '=HYPERLINK("'+self.google_map_link+'","'+self.google_map_link+'")' if self.google_map_link else None,
             self.__elevation,
             self.__call_sign,
             self.__sponsor,
@@ -330,6 +349,7 @@ class Repeater(object):
             'site_name',
             'latitude',
             'longitude',
+            'google_maps',
             'elevation',
             'call_sign',
             'sponsor',
