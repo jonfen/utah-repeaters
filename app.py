@@ -2,6 +2,7 @@ import os
 import sys
 import re
 import time
+import tempfile
 
 from openpyxl import Workbook
 from openpyxl.styles import Font
@@ -24,7 +25,15 @@ def scrape_utahvhf_org():
         capabilities = DesiredCapabilities.FIREFOX.copy()
         capabilities['strictFileInteractability'] = True
 
+        # Custom profile folder to keep the minidump files
+        profile = tempfile.mkdtemp(".selenium")
+        print("*** Using profile: {}".format(profile))
+
         options = Options()
+        options.log.level = "trace"
+        options.add_argument("-profile")
+        options.add_argument(profile)
+        options.binary = "/usr/bin/firefox"
         if headless:
             options.add_argument("--headless")
         driver = webdriver.Firefox(
@@ -38,6 +47,7 @@ def scrape_utahvhf_org():
         driver.get(url)
         time.sleep(2)
     except Exception as e:
+        print(str(e))
         driver = None
     finally:
         pass
@@ -110,7 +120,7 @@ def scrape_utahvhf_org():
         
         # Save Excel File
         wb.save(filename=cwd+'/utah_repeaters.xlsx')
-    driver.close()
+        driver.close()
 
 if __name__ == '__main__':
     import argparse
